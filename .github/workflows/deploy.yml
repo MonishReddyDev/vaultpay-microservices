@@ -1,0 +1,40 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'vaultpay-backend/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Navigate to the project directory on the server
+            cd ~/vaultpay-microservices
+            
+            # Pull the latest code from GitHub
+            git pull origin main
+            
+            # Navigate to the backend directory
+            cd vaultpay-backend
+            
+            # Rebuild and restart the Docker containers in the background
+            sudo docker-compose up -d --build
+            
+            # Remove any dangling/unused Docker images to save disk space
+            sudo docker image prune -f
