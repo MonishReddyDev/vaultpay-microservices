@@ -14,6 +14,7 @@ export interface TransferEventPayload {
   currency?:      string;         // defaults to "USD"
   description?:   string;
   metadata?:      Prisma.InputJsonValue;
+  type?:          'TRANSFER' | 'TOPUP' | 'BILL_PAYMENT';
 }
 
 export class TransactionService {
@@ -40,6 +41,7 @@ export class TransactionService {
       currency = 'USD',
       description,
       metadata,
+      type = 'TRANSFER',
     } = payload;
 
     const existing = await prisma.transaction.findUnique({
@@ -62,7 +64,7 @@ export class TransactionService {
         amount:      parseFloat(amount),
         currency,
         status:      'COMPLETED' as const,
-        type:        'TRANSFER' as const,
+        type:        type as any,
         description: description ?? `Transfer from ${fromUserId} to ${toUserId}`,
         ...(metadata !== undefined && { metadata }),
       },

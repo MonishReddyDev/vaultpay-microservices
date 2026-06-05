@@ -111,6 +111,7 @@ export const RoutingKeys = {
   // Published by Wallet Service after every successful atomic transfer.
   // Consumed by Transaction Service to record an immutable ledger entry.
   TRANSFER_COMPLETED:    'wallet.transfer.completed',
+  WALLET_CREDIT_COMPLETED: 'wallet.credit.completed',
   // Published by Wallet Service in response to wallet.debit.request events
   // from the Payment Service. Close the Choreography Saga loop.
   WALLET_DEBIT_CONFIRMED: 'wallet.debit.confirmed',

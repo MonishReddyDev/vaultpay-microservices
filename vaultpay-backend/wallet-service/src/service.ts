@@ -316,6 +316,8 @@ export class WalletService {
           {
             idempotencyKey,
             userId,
+            amount: amountDecimal.toFixed(2),
+            description: description || `Payment debit for ${paymentType}`,
             success:     true,
             paymentType,
             metadata,
@@ -417,6 +419,19 @@ export class WalletService {
         });
 
         logger.info({ userId, amountDecimal }, '💰 Wallet topped up successfully');
+
+        const idempotencyKey = `TOPUP-${wallet.id}-${Date.now()}`;
+        await messageBroker.publishToExchange(
+          Exchanges.DOMAIN_EVENTS,
+          RoutingKeys.WALLET_CREDIT_COMPLETED,
+          {
+            idempotencyKey,
+            userId,
+            amount: amountDecimal.toFixed(2),
+            description: description || 'Wallet top-up',
+            success: true
+          }
+        );
 
         return {
           message:    'Money added successfully',

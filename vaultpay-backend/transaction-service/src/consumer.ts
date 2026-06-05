@@ -29,21 +29,74 @@ import { TransactionService, TransferEventPayload } from './service';
  */
 
 const TRANSFER_COMPLETED_ROUTING_KEY = 'wallet.transfer.completed';
-const QUEUE_NAME = 'transaction-service.transfer-completed';
+const CREDIT_COMPLETED_ROUTING_KEY   = 'wallet.credit.completed';
+const DEBIT_CONFIRMED_ROUTING_KEY    = 'wallet.debit.confirmed';
+
+const QUEUE_NAME_TRANSFER = 'transaction-service.transfer-completed';
+const QUEUE_NAME_CREDIT   = 'transaction-service.credit-completed';
+const QUEUE_NAME_DEBIT    = 'transaction-service.debit-confirmed';
 
 export async function startConsumers(): Promise<void> {
   logger.info('Starting Transaction Service RabbitMQ consumers...');
 
+  // 1. Transfer Completed Consumer
   await messageBroker.consumeQueue(
     Exchanges.DOMAIN_EVENTS,         // Exchange: 'wallet.domain.events'
-    QUEUE_NAME,                       // Durable named queue
+    QUEUE_NAME_TRANSFER,              // Durable named queue
     TRANSFER_COMPLETED_ROUTING_KEY,   // Routing key
     async (event: TransferEventPayload) => {
       logger.info(
         { idempotencyKey: event.idempotencyKey, from: event.fromUserId, to: event.toUserId },
         `📨 Received wallet.transfer.completed event`
       );
-      await TransactionService.record(event);
+      await TransactionService.record({ ...event, type: 'TRANSFER' });
+    }
+  );
+
+  // 2. Credit Completed (Top-Up) Consumer
+  await messageBroker.consumeQueue(
+    Exchanges.DOMAIN_EVENTS,
+    QUEUE_NAME_CREDIT,
+    CREDIT_COMPLETED_ROUTING_KEY,
+    async (event: any) => {
+      logger.info(
+        { idempotencyKey: event.idempotencyKey, userId: event.userId },
+        `📨 Received wallet.credit.completed event`
+      );
+      await TransactionService.record({
+        idempotencyKey: event.idempotencyKey,
+        fromUserId: 'SYSTEM',
+        toUserId: event.userId,
+        amount: event.amount,
+        currency: 'USD',
+        description: event.description || 'Wallet Top-up',
+        type: 'TOPUP'
+      });
+    }
+  );
+
+  // 3. Debit Confirmed (Bill Payment) Consumer
+  await messageBroker.consumeQueue(
+    Exchanges.DOMAIN_EVENTS,
+    QUEUE_NAME_DEBIT,
+    DEBIT_CONFIRMED_ROUTING_KEY,
+    async (event: any) => {
+      // We only want to record BILL_PAYMENT or RECHARGE types here
+      if (event.success) {
+        logger.info(
+          { idempotencyKey: event.idempotencyKey, userId: event.userId },
+          `📨 Received wallet.debit.confirmed event`
+        );
+        await TransactionService.record({
+          idempotencyKey: event.idempotencyKey,
+          fromUserId: event.userId,
+          toUserId: 'SYSTEM',
+          amount: event.amount,
+          currency: 'USD',
+          description: event.description || `Payment for ${event.paymentType}`,
+          type: 'BILL_PAYMENT'
+        });
+      }
     }
   );
 
