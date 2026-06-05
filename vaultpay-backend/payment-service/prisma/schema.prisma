@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------------------------------
+// BillPayment — records every bill / utility payment.
+// userId references Auth Service user. No cross-service FK constraint
+// (deliberate microservices pattern — loose coupling via userId string).
+// -------------------------------------------------------------------
+model BillPayment {
+  id             String        @id @default(uuid())
+
+  // 🔑 Prevents duplicate records if the same RabbitMQ event is replayed.
+  idempotencyKey String        @unique
+
+  userId         String        // Auth Service user ID (no FK — cross-service)
+  billerCode     String        // e.g. "ELECTRICITY_BOARD", "WATER_CORP"
+  billerName     String        // Human-readable: "City Electricity Board"
+  accountNumber  String        // Customer's biller account / meter number
+  amount         Decimal       @db.Decimal(20, 2)
+  currency       String        @default("USD")
+  status         PaymentStatus @default(PENDING)
+  referenceId    String?       // External biller reference / receipt number
+  description    String?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@map("bill_payments")
+}
+
+// -------------------------------------------------------------------
+// Recharge — records every mobile / DTH / data recharge.
+// -------------------------------------------------------------------
+model Recharge {
+  id             String        @id @default(uuid())
+
+  // 🔑 Idempotency key — prevents duplicate recharges on message replay.
+  idempotencyKey String        @unique
+
+  userId         String        // Auth Service user ID (no FK)
+  mobileNumber   String        // 10-digit mobile number being recharged
+  operator       String        // e.g. "ATT", "VERIZON", "T_MOBILE"
+  planCode       String        // e.g. "PREPAID_30", "DATA_5GB"
+  amount         Decimal       @db.Decimal(20, 2)
+  currency       String        @default("USD")
+  status         PaymentStatus @default(PENDING)
+  referenceId    String?       // External operator reference
+  description    String?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@map("recharges")
+}
+
+// Shared status enum for both payment types.
+// Prefixed "Payment" to avoid collision with Wallet/Transaction service enums
+// if all services share the same PostgreSQL public schema.
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}

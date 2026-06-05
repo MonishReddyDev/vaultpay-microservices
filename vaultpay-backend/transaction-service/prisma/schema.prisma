@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Transaction model - the immutable financial ledger owned by the Transaction Service.
+// userId fields reference Users in Auth Service. NO foreign key constraints across
+// service boundaries — deliberate microservices pattern.
+//
+// Note: Enums are named TxStatus / TxType (not TransactionStatus / TransactionType)
+// to avoid PostgreSQL name collision with the enums already created by the Wallet Service
+// in the shared public schema.
+model Transaction {
+  id             String    @id @default(uuid())
+
+  // 🔑 IDEMPOTENCY KEY: Prevents duplicate records if the same RabbitMQ message
+  //    is delivered more than once (at-least-once delivery guarantee).
+  //    Format: "<senderWalletId>-<receiverWalletId>-<isoTimestamp>"
+  idempotencyKey String    @unique
+
+  fromUserId     String    // Auth Service user ID of sender   (no FK — cross-service)
+  toUserId       String    // Auth Service user ID of receiver (no FK — cross-service)
+  amount         Decimal   @db.Decimal(20, 2)
+  currency       String    @default("USD")
+  status         TxStatus  @default(COMPLETED)
+  type           TxType    @default(TRANSFER)
+  description    String?
+
+  // Raw event payload stored for debugging and audit purposes
+  metadata       Json?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("transactions")
+}
+
+enum TxStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TxType {
+  TRANSFER
+  TOPUP
+  REFUND
+  BILL_PAYMENT
+}

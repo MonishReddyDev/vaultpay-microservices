@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Wallet model - owned EXCLUSIVELY by the Wallet Service
+// userId references the User in Auth Service, but NO foreign key constraint across services.
+// This is deliberate: microservices must not share DB constraints.
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique  // The Auth Service user ID (cross-service reference, no FK)
+  balance   Decimal  @default(0) @db.Decimal(20, 2)
+  currency  String   @default("USD")
+  version   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+// Immutable audit log of every credit and debit
+model WalletTransaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  type        TransactionType
+  amount      Decimal  @db.Decimal(20, 2)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("wallet_transactions")
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}

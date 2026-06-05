@@ -1,0 +1,173 @@
+services:
+  # ─── Infrastructure ──────────────────────────────────────────────────────────
+
+  # PostgreSQL — single instance, each service uses its own logical schema
+  postgres:
+    image: postgres:16-alpine
+    container_name: wallet-ms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wallet_user
+      POSTGRES_PASSWORD: wallet_pass
+      POSTGRES_DB: digital_wallet_ms
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-ms-data:/var/lib/postgresql/data
+    networks:
+      - wallet-ms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_user -d digital_wallet_ms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis — caching / rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: wallet-ms-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - wallet-ms-network
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-ms-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ — event-driven async communication
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: wallet-ms-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI  →  http://localhost:15672
+    networks:
+      - wallet-ms-network
+    volumes:
+      - rabbitmq-ms-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Microservices ────────────────────────────────────────────────────────────
+  # All services use the MONOREPO ROOT as build context so the Dockerfile
+  # can COPY the shared library (which lives alongside each service dir).
+
+  # Auth Service — port 3001 — registration, login, JWT
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: wallet-ms-auth
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./auth-service/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - wallet-ms-network
+
+  # Wallet Service — port 3002 — balances, transfers, wallet provisioning
+  wallet-service:
+    build:
+      context: .
+      dockerfile: wallet-service/Dockerfile
+    container_name: wallet-ms-wallet
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./wallet-service/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - wallet-ms-network
+
+  # Transaction Service — port 3003 — immutable financial ledger
+  transaction-service:
+    build:
+      context: .
+      dockerfile: transaction-service/Dockerfile
+    container_name: wallet-ms-transaction
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./transaction-service/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - wallet-ms-network
+
+  # Payment Service — port 3004 — bill payments & mobile recharges
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: wallet-ms-payment
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./payment-service/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - wallet-ms-network
+
+  # API Gateway — port 3000 — single entry point, JWT auth, reverse proxy
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: wallet-ms-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api-gateway/.env.docker
+    depends_on:
+      - auth-service
+      - wallet-service
+      - transaction-service
+      - payment-service
+    networks:
+      - wallet-ms-network
+
+networks:
+  wallet-ms-network:
+    driver: bridge
+
+volumes:
+  postgres-ms-data:
+    driver: local
+  redis-ms-data:
+    driver: local
+  rabbitmq-ms-data:
+    driver: local

@@ -1,0 +1,15 @@
+{
+  "name": "vaultpay-backend",
+  "version": "1.0.0",
+  "description": "VaultPay — Microservices Backend (API Gateway, Auth, Wallet, Transaction, Payment)",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --prefix-colors \"cyan,green,yellow\" --names \"GW,AUTH,WALLET\" \"npm run dev --prefix api-gateway\" \"npm run dev --prefix auth-service\" \"npm run dev --prefix wallet-service\"",
+    "infra:up": "docker-compose up -d postgres rabbitmq redis",
+    "infra:down": "docker-compose down",
+    "start": "npm run infra:up && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
