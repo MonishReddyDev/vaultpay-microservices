@@ -160,6 +160,23 @@ services:
     networks:
       - wallet-ms-network
 
+  # Caddy Reverse Proxy — Automatic HTTPS via Let's Encrypt
+  caddy:
+    image: caddy:2-alpine
+    container_name: vaultpay-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api-gateway
+    networks:
+      - wallet-ms-network
+
 networks:
   wallet-ms-network:
     driver: bridge
@@ -170,4 +187,8 @@ volumes:
   redis-ms-data:
     driver: local
   rabbitmq-ms-data:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
     driver: local
