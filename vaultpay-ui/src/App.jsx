@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { Analytics } from '@vercel/analytics/react';
 import AppLayout from './components/AppLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -108,6 +109,7 @@ export default function App() {
           
           {/* Add future routes here (Transfer, Bills, History, Profile) */}
         </Routes>
+        <Analytics />
       </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
