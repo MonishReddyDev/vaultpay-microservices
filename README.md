@@ -1,4 +1,4 @@
-# VaultPay: Scalable Microservices Digital Wallet
+# VaultPay: FinTech Microservices Application
 
 VaultPay is a highly scalable, event-driven digital wallet application built using a **Microservices Architecture**. It demonstrates modern backend patterns, particularly the **Choreography Saga Pattern** for distributed transactions, ensuring high availability, zero-downtime deployments, and robust data consistency across decoupled services.
 
