@@ -57,8 +57,8 @@ This project demonstrates real-world backend engineering patterns used at compan
      ▼          ▼          ▼           ▼
 ┌──────────────────────────────────────────────┐
 │          PostgreSQL 16 (:5433)                │
-│    Each service uses its own Prisma schema   │
-│    (logical separation, single database)     │
+│   True Database-Per-Service Architecture      │
+│   (auth_db, wallet_db, txn_db, payment_db)    │
 └──────────────────────────────────────────────┘
 
      │          │          │           │
@@ -104,8 +104,8 @@ All client requests flow through a single gateway that:
 - Injects `x-user-id` / `x-user-email` headers so downstream services never handle raw tokens
 - Provides a clean `/api/*` namespace
 
-### 4. Database Per-Service (Logical)
-Each microservice has its own Prisma schema targeting a separate PostgreSQL schema. No foreign keys cross service boundaries — cross-service references use event-carried state transfer.
+### 4. Database Per-Service Architecture
+Each microservice connects to its own fully isolated database (`auth_db`, `wallet_db`, `transaction_db`, `payment_db`) inside the PostgreSQL instance. No foreign keys cross service boundaries — cross-service references use event-carried state transfer. This ensures strict decoupling and eliminates shared-state race conditions.
 
 ---
 
