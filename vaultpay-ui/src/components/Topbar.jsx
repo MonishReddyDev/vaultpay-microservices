@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Bell, Search } from 'lucide-react';
+import { Sun, Moon, Bell, Search, Menu } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import styles from './Topbar.module.css';
 
-export default function Topbar() {
+export default function Topbar({ toggleSidebar }) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +20,11 @@ export default function Topbar() {
 
   return (
     <header className={styles.topbar}>
-      <div />
+      <div className={styles.left}>
+        <button className={styles.menuBtn} onClick={toggleSidebar} aria-label="Toggle Menu">
+          <Menu size={24} />
+        </button>
+      </div>
 
       <div className={styles.actions}>
         <button className={styles.iconBtn} onClick={toggleTheme} title="Toggle Theme">

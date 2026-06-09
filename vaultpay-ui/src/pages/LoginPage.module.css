@@ -20,6 +20,12 @@
   box-shadow: var(--shadow-card);
 }
 
+@media (max-width: 768px) {
+  .card {
+    padding: var(--sp-6) var(--sp-4);
+  }
+}
+
 .header {
   display: flex;
   flex-direction: column;

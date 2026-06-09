@@ -281,3 +281,4 @@
   font-size: var(--fs-sm);
   text-align: center;
 }
+@media (max-width: 768px) { .card { padding: var(--sp-4); } }

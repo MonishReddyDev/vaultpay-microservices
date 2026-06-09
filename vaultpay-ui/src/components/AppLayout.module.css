@@ -2,6 +2,7 @@
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-primary);
+  position: relative;
 }
 
 .mainWrapper {
@@ -9,6 +10,7 @@
   margin-left: 260px; /* matches sidebar width */
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.3s ease;
 }
 
 .contentArea {
@@ -17,4 +19,29 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mainWrapper {
+    margin-left: 0;
+  }
+  
+  .contentArea {
+    padding: var(--sp-4);
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
 }

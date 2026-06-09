@@ -272,3 +272,4 @@
   0% { left: -30%; }
   100% { left: 100%; }
 }
+@media (max-width: 768px) { .card { padding: var(--sp-4); } }

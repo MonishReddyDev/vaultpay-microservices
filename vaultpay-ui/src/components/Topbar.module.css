@@ -118,3 +118,39 @@
   font-size: var(--fs-sm);
   color: var(--text-primary);
 }
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.menuBtn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: var(--sp-2);
+  margin-right: var(--sp-4);
+  border-radius: var(--radius-md);
+}
+
+.menuBtn:hover {
+  background: var(--bg-input);
+}
+
+@media (max-width: 768px) {
+  .menuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .userName {
+    display: none;
+  }
+
+  .topbar {
+    padding: var(--sp-4);
+  }
+}
