@@ -77,7 +77,7 @@ flowchart TB
 ```
 
 ### 2. Low-Level Backend Microservices Architecture
-At the micro-level, the backend isolates concerns. Each microservice manages its own logical database schema to prevent tightly coupled monolithic data structures.
+At the micro-level, the backend isolates concerns. Each microservice connects to its own fully isolated database (`auth_db`, `wallet_db`, etc.) within the PostgreSQL instance to prevent tightly coupled monolithic data structures.
 
 ```mermaid
 flowchart LR
@@ -99,10 +99,10 @@ flowchart LR
     Gateway ==> Pay
     
     subgraph Databases ["Data Persistence Layer"]
-        DB_Auth[("🐘 Postgres<br/>(Users Schema)")]
-        DB_Wallet[("🐘 Postgres<br/>(Wallets Schema)")]
-        DB_Tx[("🐘 Postgres<br/>(Ledgers Schema)")]
-        DB_Pay[("🐘 Postgres<br/>(Payments Schema)")]
+        DB_Auth[("🐘 Postgres<br/>(auth_db)")]
+        DB_Wallet[("🐘 Postgres<br/>(wallet_db)")]
+        DB_Tx[("🐘 Postgres<br/>(transaction_db)")]
+        DB_Pay[("🐘 Postgres<br/>(payment_db)")]
     end
     
     Auth --> DB_Auth
