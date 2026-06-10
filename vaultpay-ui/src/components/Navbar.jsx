@@ -1,46 +1,84 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Wallet, LayoutDashboard, Send, Receipt, History, User, LogOut } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { motion as Motion } from 'framer-motion';
+import { Home, PlusCircle, ArrowRightLeft, FileText, Clock, User, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import styles from './Navbar.module.css';
+import { useTheme } from '../context/ThemeContext';
 
-export default function Navbar() {
-  const { logout } = useAuth();
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: <Home size={18} /> },
+    { name: 'Transfer', path: '/transfer', icon: <ArrowRightLeft size={18} /> },
+    { name: 'Add Money', path: '/add-money', icon: <PlusCircle size={18} /> },
+    { name: 'Bills', path: '/bills', icon: <FileText size={18} /> },
+    { name: 'History', path: '/history', icon: <Clock size={18} /> },
+  ];
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.logo}>
-        <Wallet color="#2563eb" size={28} strokeWidth={2.5} />
-        <span>VaultPay</span>
-      </div>
+    <header className="top-navbar">
+      <div className="navbar-container">
+        {/* Brand/Logo */}
+        <div className="navbar-brand">
+          <div className="logo-icon">V</div>
+          <span className="logo-text">VaultPay</span>
+        </div>
 
-      <div className={styles.navLinks}>
-        <NavLink to="/dashboard" className={({isActive}) => isActive ? styles.activeLink : styles.link}>
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </NavLink>
-        <NavLink to="/transfer" className={({isActive}) => isActive ? styles.activeLink : styles.link}>
-          <Send size={20} />
-          <span>Transfer</span>
-        </NavLink>
-        <NavLink to="/bills" className={({isActive}) => isActive ? styles.activeLink : styles.link}>
-          <Receipt size={20} />
-          <span>Bills</span>
-        </NavLink>
-        <NavLink to="/history" className={({isActive}) => isActive ? styles.activeLink : styles.link}>
-          <History size={20} />
-          <span>Transactions</span>
-        </NavLink>
-        <NavLink to="/profile" className={({isActive}) => isActive ? styles.activeLink : styles.link}>
-          <User size={20} />
-          <span>Profile</span>
-        </NavLink>
-      </div>
+        {/* Desktop Nav Links */}
+        <nav className="navbar-links">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              className={({ isActive }) => 
+                `nav-link ${isActive ? 'nav-link-active' : ''}`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {item.icon}
+                  <span>{item.name}</span>
+                  {isActive && (
+                    <Motion.div 
+                      layoutId="activeTabDesktop" 
+                      className="nav-link-indicator"
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
 
-      <button className={styles.logoutBtn} onClick={logout}>
-        <LogOut size={20} />
-        <span>Log Out</span>
-      </button>
-    </nav>
+        {/* Right side actions */}
+        <div className="navbar-actions">
+          <button className="icon-btn theme-toggle" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          
+          <div className="user-menu">
+            <NavLink to="/profile" className="user-profile-btn">
+              <div className="user-avatar">
+                {user?.name ? user.name.charAt(0).toUpperCase() : <User size={18} />}
+              </div>
+              <span className="user-name desktop-only">{user?.name || 'User'}</span>
+            </NavLink>
+            <button className="icon-btn logout-btn" onClick={handleLogout} title="Logout">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
   );
-}
+};
+
+export default Navbar;

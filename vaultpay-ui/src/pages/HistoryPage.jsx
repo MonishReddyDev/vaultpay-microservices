@@ -3,8 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatTxDescription } from '../utils/formatTx';
-import { Search, ArrowUpRight, ArrowDownRight, Filter, Download } from 'lucide-react';
-import styles from './HistoryPage.module.css';
+import { Search, ArrowUpRight, ArrowDownRight, Filter, Download, Activity } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
+import Card from '../components/ui/Card';
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -20,7 +21,6 @@ export default function HistoryPage() {
   const fetchTransactions = async () => {
     try {
       const res = await apiClient.get('/transactions?limit=50');
-      // The API returns { success: true, data: { transactions: [...] } }
       const txData = res.data.data?.transactions || [];
       setTransactions(txData);
     } catch (err) {
@@ -31,12 +31,10 @@ export default function HistoryPage() {
   };
 
   const filteredTransactions = transactions.filter(tx => {
-    // 1. Filter by IN/OUT
     const isCredit = tx.type === 'DEPOSIT' || tx.type === 'RECEIVE' || parseFloat(tx.amount) > 0;
     if (filter === 'IN' && !isCredit) return false;
     if (filter === 'OUT' && isCredit) return false;
 
-    // 2. Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchDesc = tx.description?.toLowerCase().includes(searchLower);
@@ -48,98 +46,114 @@ export default function HistoryPage() {
   });
 
   return (
-    <>
-      <header className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Transaction History</h1>
-            <p className={styles.subtitle}>Review your complete ledger of incoming and outgoing funds.</p>
-          </div>
-          <button className="btn-outline">
-            <Download size={16} /> Export CSV
-          </button>
-        </header>
+    <div style={{ paddingTop: '20px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <div>
+          <h1 className="text-h2">Transaction History</h1>
+          <p className="text-body" style={{ marginTop: '4px' }}>Review your complete ledger of incoming and outgoing funds.</p>
+        </div>
+        <button className="btn-outline" style={{ display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 600 }}>
+          <Download size={16} /> Export
+        </button>
+      </header>
 
-        <div className={`card ${styles.card}`}>
-          {/* Controls Bar */}
-          <div className={styles.controlsBar}>
-            <div className={styles.searchBox}>
-              <Search size={18} className={styles.searchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search description..." 
-                className={styles.searchInput}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      <Card style={{ padding: '0' }}>
+        {/* Controls Bar */}
+        <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', flexDirection: 'column', '@media (min-width: 768px)': { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }}>
+          
+          <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+              <Search size={18} />
             </div>
-            
-            <div className={styles.filterGroup}>
-              <Filter size={16} className={styles.filterIcon} />
-              <button 
-                className={`${styles.filterBtn} ${filter === 'ALL' ? styles.activeFilter : ''}`}
-                onClick={() => setFilter('ALL')}
-              >
-                All
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filter === 'IN' ? styles.activeFilter : ''}`}
-                onClick={() => setFilter('IN')}
-              >
-                Money In
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filter === 'OUT' ? styles.activeFilter : ''}`}
-                onClick={() => setFilter('OUT')}
-              >
-                Money Out
-              </button>
-            </div>
+            <input 
+              type="text" 
+              placeholder="Search description..." 
+              className="input"
+              style={{ paddingLeft: '44px', background: 'rgba(128,128,128,0.05)', border: '1px solid transparent' }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-
-          {/* Transaction List Area */}
-          <div className={styles.listContainer}>
-            {isLoading ? (
-              <div className={styles.loaderArea}><div className="spinner"></div></div>
-            ) : filteredTransactions.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>No transactions found.</p>
-              </div>
-            ) : (
-              <div className={styles.txList}>
-                {filteredTransactions.map((tx) => {
-                  const isCredit = tx.type === 'DEPOSIT' || tx.type === 'RECEIVE' || parseFloat(tx.amount) > 0;
-                  const displayAmt = Math.abs(parseFloat(tx.amount) || 0);
-
-                  return (
-                    <div key={tx.id} className={styles.txRow}>
-                      <div className={styles.txIconGroup}>
-                        <div className={`${styles.txIcon} ${isCredit ? styles.positiveIcon : styles.negativeIcon}`}>
-                          {isCredit ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
-                        </div>
-                        <div className={styles.txDetails}>
-                          <p className={styles.txTitle}>{formatTxDescription(tx.description || tx.type, user?.id)}</p>
-                          <p className={styles.txTypeLabel}>{tx.type}</p>
-                        </div>
-                      </div>
-                      
-                      <div className={styles.txSide}>
-                        <p className={`${styles.txAmount} ${isCredit ? styles.positiveAmount : ''}`}>
-                          {isCredit ? '+' : '-'}{formatCurrency(displayAmt)}
-                        </p>
-                        <p className={styles.txDate}>
-                          {new Date(tx.date || tx.createdAt).toLocaleString(undefined, { 
-                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {['ALL', 'IN', 'OUT'].map(f => (
+              <button 
+                key={f}
+                onClick={() => setFilter(f)}
+                style={{ 
+                  padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 600,
+                  background: filter === f ? 'var(--brand-primary)' : 'rgba(128,128,128,0.08)',
+                  color: filter === f ? '#fff' : 'var(--text-secondary)',
+                  transition: 'all 0.2s', whiteSpace: 'nowrap'
+                }}
+              >
+                {f === 'ALL' ? 'All' : f === 'IN' ? 'Money In' : 'Money Out'}
+              </button>
+            ))}
           </div>
         </div>
 
-    </>
+        {/* Transaction List Area */}
+        <div style={{ padding: '0 24px' }}>
+          {isLoading ? (
+            <div style={{ padding: '64px 0', display: 'flex', justifyContent: 'center' }}><div className="spinner"></div></div>
+          ) : filteredTransactions.length === 0 ? (
+            <div style={{ padding: '64px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <Activity size={48} style={{ opacity: 0.2, margin: '0 auto 16px auto' }} />
+              <p>No transactions found.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {filteredTransactions.map((tx, idx) => {
+                const isCredit = tx.type === 'DEPOSIT' || tx.type === 'RECEIVE' || parseFloat(tx.amount) > 0;
+                const displayAmt = Math.abs(parseFloat(tx.amount) || 0);
+
+                return (
+                  <Motion.div 
+                    key={tx.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    style={{ 
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                      padding: '20px 0', borderBottom: '1px solid var(--border-color)' 
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div style={{ 
+                        width: '48px', height: '48px', borderRadius: '14px', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: isCredit ? 'rgba(16, 185, 129, 0.1)' : 'rgba(128, 128, 128, 0.05)',
+                        color: isCredit ? 'var(--color-green)' : 'var(--text-primary)',
+                      }}>
+                        {isCredit ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatTxDescription(tx.description || tx.type, user?.id)}</p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tx.type}</p>
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ 
+                        fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '16px',
+                        color: isCredit ? 'var(--color-green)' : 'var(--text-primary)'
+                      }}>
+                        {isCredit ? '+' : '-'}{formatCurrency(displayAmt)}
+                      </p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        {new Date(tx.date || tx.createdAt).toLocaleString(undefined, { 
+                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                  </Motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }

@@ -5,7 +5,9 @@ import { formatCurrency } from '../utils/formatCurrency';
 import { Send, User, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import styles from './TransferPage.module.css';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
 
 export default function TransferPage() {
   const { user } = useAuth();
@@ -83,126 +85,112 @@ export default function TransferPage() {
   };
 
   return (
-    <>
+    <div style={{ paddingTop: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <Motion.header 
-        className={styles.header}
+        style={{ marginBottom: '32px', textAlign: 'center' }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className={styles.title}>Send Money</h1>
-        <p className={styles.subtitle}>Instantly transfer funds to another VaultPay user.</p>
+        <h1 className="text-h2">Send Money</h1>
+        <p className="text-body" style={{ marginTop: '8px' }}>Instantly transfer funds to another VaultPay user.</p>
       </Motion.header>
 
-      <Motion.div 
-        className={styles.container}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-      >
-        <div className={`card ${styles.card}`}>
-          <AnimatePresence mode="wait">
-            {success ? (
-              <Motion.div 
-                key="success"
-                className={styles.successState}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      <Card animate={true} style={{ overflow: 'hidden' }}>
+        <AnimatePresence mode="wait">
+          {success ? (
+            <Motion.div 
+              key="success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              style={{ padding: '48px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <Motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1, rotate: 360 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+                style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', boxShadow: '0 0 20px rgba(0,186,242,0.4)' }}
               >
-                <Motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1, rotate: 360 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-                >
-                  <CheckCircle2 size={80} className={styles.successIcon} />
-                </Motion.div>
-                <h2>Transfer Successful!</h2>
-                <p>You sent {formatCurrency(parseFloat(amount))} safely.</p>
-                <div className={styles.loaderLine}></div>
-                <p className={styles.redirectText}>Returning to dashboard...</p>
+                <CheckCircle2 size={40} color="white" />
               </Motion.div>
-            ) : (
-              <Motion.form 
-                key="form"
-                onSubmit={handleSubmit} 
-                className={styles.form}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                
-                {/* Available Balance Display */}
-                <div className={styles.balanceInfo}>
-                  <p>Available Balance</p>
-                  <h3>{formatCurrency(balance)}</h3>
-                </div>
+              <h2 className="text-h3" style={{ marginBottom: '8px' }}>Transfer Successful!</h2>
+              <p className="text-body" style={{ marginBottom: '32px' }}>You sent {formatCurrency(parseFloat(amount))} safely.</p>
+              <div className="spinner" style={{ width: '32px', height: '32px', borderTopColor: 'var(--brand-primary)' }}></div>
+              <p className="text-muted" style={{ marginTop: '16px' }}>Returning to dashboard...</p>
+            </Motion.div>
+          ) : (
+            <Motion.form 
+              key="form"
+              onSubmit={handleSubmit} 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+            >
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(128,128,128,0.05)', borderRadius: '12px' }}>
+                <p className="text-muted" style={{ fontWeight: 500 }}>Available Balance</p>
+                <h3 className="text-h3">{formatCurrency(balance)}</h3>
+              </div>
 
-                {/* Recipient Input */}
-                <div className={styles.inputGroup}>
-                  <label>Send To (Phone Number)</label>
-                  <div className={styles.inputWrapper}>
-                    <User size={20} className={styles.inputIcon} />
-                    <input 
-                      type="text" 
-                      className="input" 
-                      placeholder="Enter recipient's phone number..."
-                      value={recipientPhone}
-                      onChange={(e) => setRecipientPhone(e.target.value)}
-                    />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label className="text-muted" style={{ fontWeight: 500 }}>Send To (Phone Number)</label>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <User size={20} />
                   </div>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    style={{ paddingLeft: '48px' }}
+                    placeholder="Enter recipient's phone number..."
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                  />
                 </div>
+              </div>
 
-                {/* Amount Input */}
-                <div className={styles.inputGroup}>
-                  <label>Amount</label>
-                  <Motion.div 
-                    className={styles.amountInputContainer}
-                    whileFocus={{ scale: 1.02 }}
-                  >
-                    <span className={styles.currencySymbol}>$</span>
-                    <input 
-                      type="text" 
-                      className={styles.amountInput}
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={handleAmountChange}
-                    />
-                  </Motion.div>
+              <div style={{ textAlign: 'center', margin: '16px 0' }}>
+                <label className="text-muted" style={{ display: 'block', marginBottom: '16px', fontWeight: 500 }}>Amount</label>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '3rem', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-muted)', marginRight: '8px' }}>$</span>
+                  <input 
+                    type="text" 
+                    style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', width: amount ? `${amount.length + 1}ch` : '3ch', minWidth: '3ch', textAlign: 'center' }}
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={handleAmountChange}
+                  />
                 </div>
+              </div>
 
-                {error && (
-                  <Motion.div 
-                    className={styles.errorMessage}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {error}
-                  </Motion.div>
-                )}
-
-                <Motion.button 
-                  type="submit" 
-                  className={`btn-primary ${styles.submitBtn}`} 
-                  disabled={isLoading}
-                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
+              {error && (
+                <Motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ color: 'var(--color-red)', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', textAlign: 'center', fontSize: '14px', fontWeight: 500 }}
                 >
-                  {isLoading ? (
-                    <Loader2 size={24} className="spinner" />
-                  ) : (
-                    <>
-                      <span>Send {amount ? formatCurrency(parseFloat(amount) || 0) : 'Money'}</span>
-                      <Send size={20} />
-                    </>
-                  )}
-                </Motion.button>
+                  {error}
+                </Motion.div>
+              )}
 
-              </Motion.form>
-            )}
-          </AnimatePresence>
-        </div>
-      </Motion.div>
-    </>
+              <Button type="submit" disabled={isLoading} style={{ marginTop: '8px', padding: '16px' }}>
+                {isLoading ? (
+                  <Loader2 size={24} className="spinner" />
+                ) : (
+                  <>
+                    <span style={{ marginRight: '8px' }}>Send {amount ? formatCurrency(parseFloat(amount) || 0) : 'Money'}</span>
+                    <Send size={20} />
+                  </>
+                )}
+              </Button>
+
+            </Motion.form>
+          )}
+        </AnimatePresence>
+      </Card>
+    </div>
   );
 }

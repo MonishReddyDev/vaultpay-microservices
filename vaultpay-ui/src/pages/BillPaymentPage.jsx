@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import { formatCurrency } from '../utils/formatCurrency';
-import { Lightbulb, Droplets, Wifi, Smartphone, Flame, Shield, Loader2, CheckCircle2, History } from 'lucide-react';
-import styles from './BillPaymentPage.module.css';
+import { Lightbulb, Droplets, Wifi, Smartphone, Flame, Shield, Loader2, CheckCircle2, History, ArrowLeft } from 'lucide-react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 
 const BILL_CATEGORIES = [
-  { code: 'ELEC', name: 'Electricity', icon: Lightbulb, color: '#f59e0b', bg: '#fef3c7' },
-  { code: 'WTR', name: 'Water', icon: Droplets, color: '#3b82f6', bg: '#dbeafe' },
-  { code: 'INT', name: 'Internet', icon: Wifi, color: '#10b981', bg: '#d1fae5' },
-  { code: 'MOB', name: 'Mobile', icon: Smartphone, color: '#6366f1', bg: '#e0e7ff' },
-  { code: 'GAS', name: 'Gas', icon: Flame, color: '#ef4444', bg: '#fee2e2' },
-  { code: 'INS', name: 'Insurance', icon: Shield, color: '#8b5cf6', bg: '#ede9fe' },
+  { code: 'ELEC', name: 'Electricity', icon: Lightbulb, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
+  { code: 'WTR', name: 'Water', icon: Droplets, color: '#00baf2', bg: 'rgba(0, 186, 242, 0.15)' },
+  { code: 'INT', name: 'Internet', icon: Wifi, color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
+  { code: 'MOB', name: 'Mobile', icon: Smartphone, color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)' },
+  { code: 'GAS', name: 'Gas', icon: Flame, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)' },
+  { code: 'INS', name: 'Insurance', icon: Shield, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },
 ];
 
 export default function BillPaymentPage() {
   const [selectedBiller, setSelectedBiller] = useState(null);
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
   const [recentBills, setRecentBills] = useState([]);
   const [isLoadingBills, setIsLoadingBills] = useState(true);
 
-  // Fetch recent bill history
   useEffect(() => {
     fetchRecentBills();
   }, []);
@@ -33,7 +32,6 @@ export default function BillPaymentPage() {
   const fetchRecentBills = async () => {
     try {
       const res = await apiClient.get('/bills?limit=5');
-      // The backend returns success: true, data: { records: [...] }
       setRecentBills(res.data.data?.records || []);
     } catch (err) {
       console.error("Failed to fetch bill history:", err);
@@ -82,7 +80,6 @@ export default function BillPaymentPage() {
       setAccountNumber('');
       setAmount('');
       
-      // Refresh the bill history
       setTimeout(() => {
         fetchRecentBills();
         setSuccess(false);
@@ -97,123 +94,148 @@ export default function BillPaymentPage() {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Utility Bills</h1>
-        <p className={styles.subtitle}>Pay your essential bills quickly and securely.</p>
+    <div style={{ paddingTop: '20px' }}>
+      <header style={{ marginBottom: '32px' }}>
+        <h1 className="text-h2">Utility Bills</h1>
+        <p className="text-body" style={{ marginTop: '8px' }}>Pay your essential bills quickly and securely.</p>
       </header>
 
-      <div className={styles.grid}>
+      <div className="bento-container">
+        
         {/* Main Action Area */}
-        <div className={styles.mainCol}>
-          
+        <div style={{ gridColumn: 'span 12' }} className="bento-item">
           {!selectedBiller ? (
-             // Category Selection Step
-             <div className={`card ${styles.card}`}>
-               <h2 className={styles.sectionTitle}>Select a Category</h2>
-               <div className={styles.billerGrid}>
+             <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '8px' }}>
+               <h2 className="text-h3" style={{ marginBottom: '24px' }}>Select a Category</h2>
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
                  {BILL_CATEGORIES.map(biller => {
                    const Icon = biller.icon;
                    return (
-                     <button 
+                     <Motion.button 
                        key={biller.code} 
-                       className={styles.billerCard}
+                       whileHover={{ scale: 1.05 }}
+                       whileTap={{ scale: 0.95 }}
                        onClick={() => handleBillerSelect(biller)}
+                       style={{ 
+                         background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', 
+                         padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+                         boxShadow: 'var(--shadow-sm)', transition: 'border 0.2s', color: 'var(--text-primary)'
+                       }}
                      >
-                       <div className={styles.iconCircle} style={{ backgroundColor: biller.bg, color: biller.color }}>
-                         <Icon size={24} strokeWidth={2.5} />
+                       <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: biller.bg, color: biller.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         <Icon size={28} strokeWidth={2.5} />
                        </div>
-                       <span>{biller.name}</span>
-                     </button>
+                       <span style={{ fontWeight: 600, fontSize: '15px' }}>{biller.name}</span>
+                     </Motion.button>
                    );
                  })}
                </div>
-             </div>
+             </Motion.div>
           ) : (
-             // Payment Form Step
-             <div className={`card ${styles.card}`}>
-               <div className={styles.formHeader}>
-                 <button className={styles.backBtn} onClick={() => setSelectedBiller(null)}>← Back</button>
-                 <div className={styles.selectedBillerBadge}>
+             <Motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ padding: '8px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                 <button onClick={() => setSelectedBiller(null)} style={{ background: 'none', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                   <ArrowLeft size={18} /> Back
+                 </button>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: selectedBiller.bg, color: selectedBiller.color, borderRadius: '20px', fontWeight: 600, fontSize: '14px' }}>
                    <selectedBiller.icon size={16} /> 
                    {selectedBiller.name}
                  </div>
                </div>
 
-               {success ? (
-                 <div className={styles.successState}>
-                   <CheckCircle2 size={64} className={styles.successIcon} />
-                   <h2>Payment Processing</h2>
-                   <p>Your {selectedBiller.name} bill payment has been initiated successfully.</p>
-                 </div>
-               ) : (
-                 <form onSubmit={handlePayBill} className={styles.paymentForm}>
-                   <div className={styles.inputGroup}>
-                     <label>Account / Meter Number</label>
-                     <input 
-                       type="text" 
-                       className="input" 
-                       placeholder={`Enter your ${selectedBiller.name.toLowerCase()} account number`}
-                       value={accountNumber}
-                       onChange={(e) => {
-                         setAccountNumber(e.target.value);
-                         setError('');
-                       }}
-                       autoFocus
-                     />
-                   </div>
-                   <div className={styles.inputGroup}>
-                     <label>Amount Due</label>
-                     <div className={styles.amountInputContainer}>
-                       <span className={styles.currencySymbol}>$</span>
+               <AnimatePresence mode="wait">
+                 {success ? (
+                   <Motion.div 
+                     key="success"
+                     initial={{ opacity: 0, scale: 0.9 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0 }}
+                     style={{ textAlign: 'center', padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                   >
+                     <Motion.div
+                       initial={{ scale: 0 }}
+                       animate={{ scale: 1, rotate: 360 }}
+                       style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', boxShadow: '0 0 20px rgba(0,186,242,0.4)' }}
+                     >
+                       <CheckCircle2 size={40} color="white" />
+                     </Motion.div>
+                     <h2 className="text-h3" style={{ marginBottom: '8px' }}>Payment Processing</h2>
+                     <p className="text-body">Your {selectedBiller.name} bill payment has been initiated successfully.</p>
+                   </Motion.div>
+                 ) : (
+                   <Motion.form 
+                     key="form"
+                     onSubmit={handlePayBill} 
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '500px', margin: '0 auto' }}
+                   >
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                       <label className="text-muted" style={{ fontWeight: 500 }}>Account / Meter Number</label>
                        <input 
                          type="text" 
-                         className={styles.amountInput}
-                         placeholder="0.00"
-                         value={amount}
-                         onChange={handleAmountChange}
+                         className="input" 
+                         placeholder={`Enter your ${selectedBiller.name.toLowerCase()} account number`}
+                         value={accountNumber}
+                         onChange={(e) => { setAccountNumber(e.target.value); setError(''); }}
+                         autoFocus
                        />
                      </div>
-                   </div>
+                     
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'center', marginTop: '16px' }}>
+                       <label className="text-muted" style={{ fontWeight: 500 }}>Amount Due</label>
+                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '3rem', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                         <span style={{ color: 'var(--text-muted)', marginRight: '8px' }}>$</span>
+                         <input 
+                           type="text" 
+                           style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', width: amount ? `${amount.length + 1}ch` : '3ch', minWidth: '3ch', textAlign: 'center' }}
+                           placeholder="0.00"
+                           value={amount}
+                           onChange={handleAmountChange}
+                         />
+                       </div>
+                     </div>
 
-                   {error && <div className={styles.errorMessage}>{error}</div>}
+                     {error && <div style={{ color: 'var(--color-red)', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', textAlign: 'center', fontSize: '14px', fontWeight: 500 }}>{error}</div>}
 
-                   <button 
-                     type="submit" 
-                     className={`btn-primary ${styles.submitBtn}`}
-                     disabled={isSubmitting}
-                   >
-                     {isSubmitting ? <Loader2 size={20} className="spinner" /> : 'Pay Bill Securely'}
-                   </button>
-                 </form>
-               )}
-             </div>
+                     <Button type="submit" disabled={isSubmitting} style={{ padding: '16px', marginTop: '16px' }}>
+                       {isSubmitting ? <Loader2 size={24} className="spinner" /> : 'Pay Bill Securely'}
+                     </Button>
+                   </Motion.form>
+                 )}
+               </AnimatePresence>
+             </Motion.div>
           )}
         </div>
 
-        {/* Sidebar / Recent History Area */}
-        <div className={styles.sideCol}>
-          <div className={`card ${styles.historyCard}`}>
-            <div className={styles.historyHeader}>
-              <History size={18} />
-              <h3>Recent Payments</h3>
+        {/* Recent History Area */}
+        <div style={{ gridColumn: 'span 12' }}>
+          <Card style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <History size={20} color="var(--brand-primary)" />
+              <h3 className="text-h3" style={{ fontSize: '18px' }}>Recent Payments</h3>
             </div>
             
             {isLoadingBills ? (
-              <div className={styles.loaderArea}><div className="spinner"></div></div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}><div className="spinner"></div></div>
             ) : recentBills.length === 0 ? (
-              <div className={styles.emptyState}>No recent bills found.</div>
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No recent bills found.</div>
             ) : (
-              <div className={styles.historyList}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {recentBills.map(bill => (
-                  <div key={bill.id} className={styles.historyRow}>
-                    <div className={styles.historyDetails}>
-                      <p className={styles.historyName}>{bill.billerName}</p>
-                      <p className={styles.historyDate}>{new Date(bill.date || bill.createdAt).toLocaleDateString()}</p>
+                  <div key={bill.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(128,128,128,0.02)', borderRadius: '12px' }}>
+                    <div>
+                      <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{bill.billerName}</p>
+                      <p className="text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>{new Date(bill.date || bill.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <div className={styles.historyValues}>
-                      <p className={styles.historyAmount}>{formatCurrency(parseFloat(bill.amount))}</p>
-                      <span className={`${styles.statusBadge} ${bill.status === 'COMPLETED' ? styles.statusCompleted : bill.status === 'PENDING' ? styles.statusPending : styles.statusFailed}`}>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(parseFloat(bill.amount))}</p>
+                      <span style={{ 
+                        fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', textTransform: 'uppercase',
+                        background: bill.status === 'COMPLETED' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
+                        color: bill.status === 'COMPLETED' ? 'var(--color-green)' : 'var(--color-yellow)'
+                      }}>
                         {bill.status}
                       </span>
                     </div>
@@ -221,7 +243,7 @@ export default function BillPaymentPage() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
       </div>

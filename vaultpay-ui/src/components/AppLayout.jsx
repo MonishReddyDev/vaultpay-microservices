@@ -1,30 +1,35 @@
-import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
-import styles from './AppLayout.module.css';
+import React from 'react';
+import Navbar from './Navbar';
+import BottomNav from './BottomNav';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 export default function AppLayout({ children }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const location = useLocation();
 
   return (
-    <div className={styles.appContainer}>
-      <Sidebar isOpen={isSidebarOpen} closeSidebar={() => setIsSidebarOpen(false)} />
-      
-      {/* Mobile Backdrop Overlay */}
-      {isSidebarOpen && (
-        <div className={styles.backdrop} onClick={() => setIsSidebarOpen(false)}></div>
-      )}
+    <div className="app-container">
+      {/* Desktop Top Navigation */}
+      <Navbar />
 
-      <div className={styles.mainWrapper}>
-        <Topbar toggleSidebar={toggleSidebar} />
-        <main className={styles.contentArea}>
-          {children}
-        </main>
-      </div>
+      {/* Main Content Area with Route Transitions */}
+      <main className="main-content">
+        <AnimatePresence mode="wait">
+          <Motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="page-wrapper"
+          >
+            {children}
+          </Motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }
