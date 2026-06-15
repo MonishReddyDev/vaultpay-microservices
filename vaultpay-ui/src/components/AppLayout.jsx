@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from './Navbar';
 import BottomNav from './BottomNav';
+import ChatAssistant from './ChatAssistant';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -27,6 +28,9 @@ export default function AppLayout({ children }) {
           </Motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Chat Assistant Widget */}
+      <ChatAssistant />
 
       {/* Mobile Bottom Navigation */}
       <BottomNav />
