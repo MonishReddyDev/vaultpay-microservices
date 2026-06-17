@@ -64,11 +64,12 @@ jobs:
           npm ci
           npx tsc --noEmit
 
-      - name: Check Wallet Service
+      - name: Check & Test Wallet Service
         working-directory: ./vaultpay-backend/wallet-service
         run: |
           npm ci
           npx tsc --noEmit
+          npm run test
 
       - name: Check Transaction Service
         working-directory: ./vaultpay-backend/transaction-service
