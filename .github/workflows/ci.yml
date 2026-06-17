@@ -46,11 +46,11 @@ jobs:
           node-version: '18'
 
       # We install and build shared first because other services depend on it
-      - name: Check Shared Library
+      - name: Build Shared Library
         working-directory: ./vaultpay-backend/shared
         run: |
           npm ci
-          npx tsc --noEmit
+          npm run build
 
       - name: Check API Gateway
         working-directory: ./vaultpay-backend/api-gateway
