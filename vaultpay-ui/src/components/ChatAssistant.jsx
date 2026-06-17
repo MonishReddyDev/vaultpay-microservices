@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Bot, User, ChevronRight } from 'lucide-react';
 
@@ -35,6 +36,7 @@ export default function ChatAssistant() {
   const handleOptionClick = (option) => {
     // Add user message
     const userMsg = {
+      // eslint-disable-next-line react-hooks/purity
       id: Date.now(),
       type: 'user',
       text: option.label,
