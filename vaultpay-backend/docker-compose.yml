@@ -67,6 +67,7 @@ services:
 
   # Auth Service — port 3001 — registration, login, JWT
   auth-service:
+    image: ghcr.io/monishreddydev/vaultpay-auth:latest
     build:
       context: .
       dockerfile: auth-service/Dockerfile
@@ -86,6 +87,7 @@ services:
 
   # Wallet Service — port 3002 — balances, transfers, wallet provisioning
   wallet-service:
+    image: ghcr.io/monishreddydev/vaultpay-wallet:latest
     build:
       context: .
       dockerfile: wallet-service/Dockerfile
@@ -105,6 +107,7 @@ services:
 
   # Transaction Service — port 3003 — immutable financial ledger
   transaction-service:
+    image: ghcr.io/monishreddydev/vaultpay-transaction:latest
     build:
       context: .
       dockerfile: transaction-service/Dockerfile
@@ -124,6 +127,7 @@ services:
 
   # Payment Service — port 3004 — bill payments & mobile recharges
   payment-service:
+    image: ghcr.io/monishreddydev/vaultpay-payment:latest
     build:
       context: .
       dockerfile: payment-service/Dockerfile
@@ -143,6 +147,7 @@ services:
 
   # API Gateway — port 3000 — single entry point, JWT auth, reverse proxy
   api-gateway:
+    image: ghcr.io/monishreddydev/vaultpay-gateway:latest
     build:
       context: .
       dockerfile: api-gateway/Dockerfile

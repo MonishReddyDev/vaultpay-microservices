@@ -9,8 +9,57 @@ on:
       - '.github/workflows/deploy.yml'
 
 jobs:
+  build-images:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Auth Service
+        run: |
+          cd vaultpay-backend
+          docker build -f auth-service/Dockerfile -t ghcr.io/monishreddydev/vaultpay-auth:latest .
+          docker push ghcr.io/monishreddydev/vaultpay-auth:latest
+
+      - name: Build and Push Wallet Service
+        run: |
+          cd vaultpay-backend
+          docker build -f wallet-service/Dockerfile -t ghcr.io/monishreddydev/vaultpay-wallet:latest .
+          docker push ghcr.io/monishreddydev/vaultpay-wallet:latest
+
+      - name: Build and Push Transaction Service
+        run: |
+          cd vaultpay-backend
+          docker build -f transaction-service/Dockerfile -t ghcr.io/monishreddydev/vaultpay-transaction:latest .
+          docker push ghcr.io/monishreddydev/vaultpay-transaction:latest
+
+      - name: Build and Push Payment Service
+        run: |
+          cd vaultpay-backend
+          docker build -f payment-service/Dockerfile -t ghcr.io/monishreddydev/vaultpay-payment:latest .
+          docker push ghcr.io/monishreddydev/vaultpay-payment:latest
+
+      - name: Build and Push API Gateway
+        run: |
+          cd vaultpay-backend
+          docker build -f api-gateway/Dockerfile -t ghcr.io/monishreddydev/vaultpay-gateway:latest .
+          docker push ghcr.io/monishreddydev/vaultpay-gateway:latest
+
   deploy:
     name: Deploy to Production Server
+    needs: build-images
     runs-on: ubuntu-latest
 
     steps:
@@ -33,8 +82,14 @@ jobs:
             # Navigate to the backend directory
             cd vaultpay-backend
             
-            # Rebuild and restart the Docker containers in the background (using v2 syntax)
-            sudo docker compose up -d --build
+            # Log in to GHCR to pull private images securely
+            echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Pull the new images
+            sudo docker compose pull
+            
+            # Restart the Docker containers with the new images
+            sudo docker compose up -d
             
             # Remove any dangling/unused Docker images to save disk space
             sudo docker image prune -f
