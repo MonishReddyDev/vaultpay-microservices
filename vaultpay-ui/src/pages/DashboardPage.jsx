@@ -206,7 +206,7 @@ export default function DashboardPage() {
 
                   return (
                     <Motion.div 
-                      key={tx.id || Math.random()} 
+                      key={tx.id || `tx-${idx}`} 
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + (idx * 0.1) }}

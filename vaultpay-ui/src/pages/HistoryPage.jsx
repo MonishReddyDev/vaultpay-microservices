@@ -14,21 +14,16 @@ export default function HistoryPage() {
   const [filter, setFilter] = useState('ALL'); // ALL, IN, OUT
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
 
-  const fetchTransactions = async () => {
-    try {
-      const res = await apiClient.get('/transactions?limit=50');
-      const txData = res.data.data?.transactions || [];
-      setTransactions(txData);
-    } catch (err) {
-      console.error("Failed to fetch transactions:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+  useEffect(() => {
+    let isMounted = true;
+    apiClient.get('/transactions?limit=50')
+      .then(res => { if (isMounted) setTransactions(res.data.data?.transactions || []); })
+      .catch(err => console.error("Failed to fetch transactions:", err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, []);
 
   const filteredTransactions = transactions.filter(tx => {
     const isCredit = tx.type === 'DEPOSIT' || tx.type === 'RECEIVE' || parseFloat(tx.amount) > 0;

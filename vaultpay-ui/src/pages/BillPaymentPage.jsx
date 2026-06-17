@@ -25,10 +25,6 @@ export default function BillPaymentPage() {
   const [recentBills, setRecentBills] = useState([]);
   const [isLoadingBills, setIsLoadingBills] = useState(true);
 
-  useEffect(() => {
-    fetchRecentBills();
-  }, []);
-
   const fetchRecentBills = async () => {
     try {
       const res = await apiClient.get('/bills?limit=5');
@@ -39,6 +35,15 @@ export default function BillPaymentPage() {
       setIsLoadingBills(false);
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    apiClient.get('/bills?limit=5')
+      .then(res => { if (isMounted) setRecentBills(res.data.data?.records || []); })
+      .catch(err => console.error("Failed to fetch bill history:", err))
+      .finally(() => { if (isMounted) setIsLoadingBills(false); });
+    return () => { isMounted = false; };
+  }, []);
 
   const handleAmountChange = (e) => {
     const val = e.target.value.replace(/[^0-9.]/g, '');
