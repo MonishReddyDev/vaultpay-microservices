@@ -1,0 +1,83 @@
+name: CI Gatekeeper
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend-checks:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'vaultpay-ui/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: ./vaultpay-ui
+        run: npm ci
+
+      - name: Run Linter
+        working-directory: ./vaultpay-ui
+        run: npm run lint
+
+      - name: Build Application
+        working-directory: ./vaultpay-ui
+        run: npm run build
+
+  backend-checks:
+    name: Backend Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # We install and build shared first because other services depend on it
+      - name: Check Shared Library
+        working-directory: ./vaultpay-backend/shared
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check API Gateway
+        working-directory: ./vaultpay-backend/api-gateway
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check Auth Service
+        working-directory: ./vaultpay-backend/auth-service
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check Wallet Service
+        working-directory: ./vaultpay-backend/wallet-service
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check Transaction Service
+        working-directory: ./vaultpay-backend/transaction-service
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check Payment Service
+        working-directory: ./vaultpay-backend/payment-service
+        run: |
+          npm ci
+          npx tsc --noEmit
