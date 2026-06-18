@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Create an Axios instance pointing to the API Gateway
-const API_URL = import.meta.env.VITE_API_URL || 'https://3-133-85-111.nip.io/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://3-131-133-163.nip.io/api';
 
 const apiClient = axios.create({
   baseURL: API_URL, 
