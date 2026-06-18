@@ -73,9 +73,12 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Navigate to the project directory on the server
-            cd ~/vaultpay-microservices
-            
+            # Clone the repository if it doesn't exist on this server
+            if [ ! -d "$HOME/vaultpay-microservices" ]; then
+              git clone https://github.com/MonishReddyDev/vaultpay-microservices.git $HOME/vaultpay-microservices
+            fi
+            # Navigate to the project directory
+            cd $HOME/vaultpay-microservices
             # Pull the latest code from GitHub
             git pull origin main
             
