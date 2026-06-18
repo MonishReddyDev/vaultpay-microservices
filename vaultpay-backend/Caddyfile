@@ -2,6 +2,6 @@
 # Uses nip.io to automatically provision a free Let's Encrypt SSL Certificate
 # for your AWS EC2 instance without buying a domain.
 
-18-218-110-14.nip.io {
+3-133-85-111.nip.io {
     reverse_proxy api-gateway:3000
 }
