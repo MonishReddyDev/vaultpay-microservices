@@ -5,7 +5,7 @@ VaultPay is a highly scalable, event-driven digital wallet application built usi
 This project was built from the ground up to showcase production-grade cloud architecture, DevOps automation, and resilient software design.
 
 🌐 **Live Demo (Frontend):** [https://vaultpay-microservices.vercel.app](https://vaultpay-microservices.vercel.app)
-⚙️ **Live API (Backend):** `https://18-218-110-14.nip.io/api`
+⚙️ **Live API (Backend):** `https://3.131.133.163.nip.io/api`
 
 ---
 
