@@ -8,14 +8,14 @@ import Input from '../components/ui/Input';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@vaultpay.co');
+  const [password, setPassword] = useState('password123');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login, register } = useAuth();
+  const { login, register, startDemoMode } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -31,8 +31,45 @@ export default function LoginPage() {
       }
       navigate('/dashboard'); 
     } catch (err) {
-      const message = err.response?.data?.message || 'Authentication failed. Please check credentials.';
-      setError(message);
+      console.error(err);
+      const isGatewayError = 
+        !err.response || 
+        err.response.status === 500 || 
+        err.response.status === 502 || 
+        err.response.status === 503 || 
+        err.code === 'ERR_NETWORK' ||
+        err.message?.includes('Network Error') ||
+        (err.response?.data?.message && typeof err.response.data.message === 'string' && err.response.data.message.includes('auth-service'));
+        
+      if (isGatewayError) {
+        setError(
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+            <span>Microservices Backend Offline.</span>
+            <button 
+              type="button" 
+              onClick={() => {
+                startDemoMode();
+                navigate('/dashboard');
+              }}
+              style={{ 
+                background: 'var(--brand-primary)', 
+                border: 'none', 
+                color: 'white', 
+                fontWeight: 600, 
+                cursor: 'pointer', 
+                padding: '6px 12px', 
+                borderRadius: '6px',
+                fontSize: '13px' 
+              }}
+            >
+              Enter Demo Mode
+            </button>
+          </div>
+        );
+      } else {
+        const message = err.response?.data?.message || err.response?.data?.error || 'Authentication failed. Please check credentials.';
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +211,50 @@ export default function LoginPage() {
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
           </div>
+
+          {isLogin && (
+            <div style={{
+              marginTop: '24px',
+              padding: '16px',
+              borderRadius: '16px',
+              background: 'rgba(0, 186, 242, 0.06)',
+              border: '1px dashed rgba(0, 186, 242, 0.4)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, margin: 0 }}>
+                👑 CEO & Investor Preview Mode
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                Demo credentials are prefilled. Click below to bypass server connection and explore features immediately.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  startDemoMode();
+                  navigate('/dashboard');
+                }}
+                style={{
+                  marginTop: '4px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  background: 'var(--brand-primary)',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  border: 'none',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = 0.9}
+                onMouseOut={(e) => e.currentTarget.style.opacity = 1}
+              >
+                Quick Enter Demo Mode
+              </button>
+            </div>
+          )}
         </Motion.div>
 
       </div>

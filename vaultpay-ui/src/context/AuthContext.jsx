@@ -32,6 +32,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    if (email === 'demo@vaultpay.co') {
+      localStorage.setItem('is_demo_mode', 'true');
+    } else {
+      localStorage.removeItem('is_demo_mode');
+    }
+
     const response = await apiClient.post('/auth/login', { email, password });
     const { token, user: userData } = response.data.data;
     
@@ -51,13 +57,33 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
+  const startDemoMode = () => {
+    localStorage.setItem('is_demo_mode', 'true');
+    localStorage.setItem('access_token', 'mock-jwt-token-demo');
+    const demoUser = {
+      id: 'demo-user-id',
+      name: 'Demo CEO',
+      email: 'demo@vaultpay.co',
+      phone: '+14155552671',
+      kycVerified: true,
+      createdAt: new Date().toISOString()
+    };
+    localStorage.setItem('demo_user', JSON.stringify(demoUser));
+    setUser(demoUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('is_demo_mode');
+    localStorage.removeItem('demo_user');
+    localStorage.removeItem('demo_balance');
+    localStorage.removeItem('demo_transactions');
+    localStorage.removeItem('demo_bills');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, startDemoMode }}>
       {/* Do not render the app until we know the authentication status */}
       {!loading && children}
     </AuthContext.Provider>
